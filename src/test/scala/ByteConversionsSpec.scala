@@ -45,4 +45,24 @@ class ByteConversionsSpec extends FlatSpec
 
     check((long: Long) ⇒ flip(long) == long)
   }
+
+  it should "convert a double" in {
+    def flip(double: Double) = toDouble(toBytes(double))
+    check((double: Double) ⇒ flip(double) == double)
+  }
+
+  it should "convert an int" in {
+    def flip(int: Int) = toInt(toBytes(int))
+
+    flip(0) should equal (0)
+    flip(1) should equal (1)
+    flip(-1) should equal (-1)
+
+    check((int: Int) ⇒ flip(int) == int)
+  }
+
+  it should "convert a float" in {
+    def flip(float: Float) = toFloat(toBytes(float))
+    check((float: Float) ⇒ flip(float) == float)
+  }
 }
