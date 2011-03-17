@@ -5,7 +5,7 @@ import java.{lang ⇒ j}
 /** Largely stolen from:
   * hbase/src/main/java/org/apache/hadoop/hbase/util/Bytes.java
   */
-object ByteConversions {
+object ByteConversions extends ByteConversions {
   val SIZEOF_BOOLEAN = j.Byte.SIZE / j.Byte.SIZE
   val SIZEOF_BYTE = j.Byte.SIZE
   val SIZEOF_CHAR = j.Character.SIZE / j.Byte.SIZE
@@ -24,13 +24,13 @@ trait ByteConversions {
   class ByteArrayOrdering extends Ordering[BA] {
     def compare(a: BA, b: BA): Int = {
       if(a.length > b.length) {
-        return -1
-      } else if (b.length > a.length) {
         return 1
+      } else if (b.length > a.length) {
+        return -1
       } else {
         a zip b foreach { case(ba, bb) ⇒
-          if(ba > bb) return -1
-          if(bb > ba) return 1
+          if(ba > bb) return 1
+          if(bb > ba) return -1
         }
         return 0
       }
