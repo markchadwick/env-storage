@@ -54,6 +54,10 @@ trait TableTests extends FlatSpec with ShouldMatchers {
     }
   }
 
+  it should "have an iterator which returns all rows" is (pending)
+  it should "find an inclusive range" is (pending)
+  it should "remove a key" is (pending)
+
   /** We mix [[ByteConversions]] in to a new object so that no implicits are in
     * play in the test code. */
   object Conv extends ByteConversions
