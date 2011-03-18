@@ -12,35 +12,35 @@ trait TableTests extends FlatSpec with ShouldMatchers {
 
   behavior of name
 
-
   it should "store a value to a key" in {
     withTable { table ⇒
       val two = Conv.toBytes("two")
       val four = Conv.toBytes("four")
-      table("one") = two
-      table("two") = four
 
-      bytesOptsShouldEqual(table.get("one"), Some(two))
-      bytesOptsShouldEqual(Some(table("two")), Some(four))
+      tableSet(table, "one", "two")
+      tableSet(table, "two", "four")
+
+      tableGet(table, "one") should equal (Some("two"))
+      table(Conv.toBytes("two")) should equal (Conv.toBytes("four"))
 
       intercept[NoSuchElementException] {
-        table("three")
+        table(Conv.toBytes("three"))
       }
     }
   }
 
-  it should "have a sortable keyspace" in {
+  it should "have a lexographiclly sorted keyspace" in {
     withTable { table ⇒
       val ordering = new Conv.ByteArrayOrdering()
       (1 to 100) foreach { i ⇒
         val key = UUID.randomUUID.toString
-        val keyBytes = Conv.toBytes(key)
-        table(keyBytes) = Conv.toBytes("x")
+        tableSet(table, key, "x")
       }
 
-      table(Conv.toBytes("bar1")) = Conv.toBytes("foo1")
-      table(Conv.toBytes("bar2")) = Conv.toBytes("foo2")
-      table(Conv.toBytes("bar3")) = Conv.toBytes("foo3")
+      // Ensure Lexo Ording
+      tableSet(table, "bar1", "foo1")
+      tableSet(table, "bar2", "foo2")
+      tableSet(table, "bar3", "foo3")
 
       val none = (Array.empty[Byte], Array.empty[Byte])
       table.foldLeft(none)((prev, next) ⇒ {
@@ -55,21 +55,121 @@ trait TableTests extends FlatSpec with ShouldMatchers {
     }
   }
 
-  it should "have an iterator which returns all rows" is (pending)
-  it should "find an inclusive range" is (pending)
-  it should "remove a key" is (pending)
+  it should "have an iterator which returns all rows" in {
+    withTable { table ⇒
+      List("aaa", "bbb", "ccc", "ddd")
+        .sorted(new ShuffleOrdering)
+        .map(ByteConversions.toBytes)
+        .foreach(v ⇒ table(v) = v)
+      
+      val iterator = table.iterator
+
+      iterator.hasNext should be (true)
+      Conv.toUtf8(iterator.next._1) should equal ("aaa")
+
+      iterator.hasNext should be (true)
+      Conv.toUtf8(iterator.next._1) should equal ("bbb")
+
+      iterator.hasNext should be (true)
+      Conv.toUtf8(iterator.next._1) should equal ("ccc")
+
+      iterator.hasNext should be (true)
+      Conv.toUtf8(iterator.next._1) should equal ("ddd")
+
+      iterator.hasNext should be (false)
+    }
+  }
+
+  /*
+  it should "find a range inclusive of the first key exclusive of the last" in {
+    withTable { table ⇒
+      val vals = List("bbb", "ccc", "ddd", "eee")
+                  .sorted(new ShuffleOrdering)
+                  .map(ByteConversions.toBytes)
+                  .foreach(v ⇒ table(v) = v)
+
+      val r1 = table.range(Conv.toBytes("ccc"), Conv.toBytes("eee"))
+      r1 should have size (2)
+      r1.keys.zip(List("ccc", "ddd"))
+             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+
+      val r2 = table.range(Conv.toBytes("ddd"), Conv.toBytes("zzz"))
+      r2 should have size (2)
+      r2.keys.zip(List("ddd", "eee"))
+             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+
+      val r3 = table.range(Conv.toBytes("aaa"), Conv.toBytes("bbb"))
+      r3 should have size (0)
+
+      val r4 = table.range(Conv.toBytes("aaa"), Conv.toBytes("ddd"))
+      r4 should have size (2)
+      r4.keys.zip(List("bbb", "ccc"))
+             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+
+    }
+  }
+
+  it should "query from a given key until the end of the table" in {
+    withTable { table ⇒
+      val vals = List("aaa", "bbb", "ccc", "ddd")
+                  .sorted(new ShuffleOrdering)
+                  .map(ByteConversions.toBytes)
+                  .foreach(v ⇒ table(v) = v)
+
+      val r1 = table.from(Conv.toBytes("ccc"))
+      r1 should have size (2)
+      r1.keys.zip(List("ccc", "ddd"))
+             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+
+      val r2 = table.from(Conv.toBytes("ddd"))
+      r2 should have size (1)
+      r2.keys.zip(List("ddd"))
+             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+
+      val r3 = table.from(Conv.toBytes("eee"))
+      r3 should have size (0)
+
+      val r4 = table.from(Conv.toBytes("aaa"))
+      r4 should have size (4)
+    }
+  }
+
+  it should "remove a key" in {
+    withTable { table ⇒
+      table(Conv.toBytes("one")) = Conv.toBytes("one")
+      table(Conv.toBytes("two")) = Conv.toBytes("two")
+      table(Conv.toBytes("three")) = Conv.toBytes("three")
+      table(Conv.toBytes("four")) = Conv.toBytes("four")
+
+      bytesOptsShouldEqual(table.get(Conv.toBytes("one")),
+                                     Some(Conv.toBytes("one")))
+
+      bytesOptsShouldEqual(table.get(Conv.toBytes("three")),
+                                     Some(Conv.toBytes("three")))
+
+      table - Conv.toBytes("three")
+
+      pending
+      bytesOptsShouldEqual(table.get(Conv.toBytes("three")), None)
+    }
+  }
+  */
+
+  it should "clobber a value on update" is (pending)
 
   /** We mix [[ByteConversions]] in to a new object so that no implicits are in
     * play in the test code. */
   object Conv extends ByteConversions
 
-  private def bytesOptsShouldEqual(a: Option[Array[Byte]],
-                                   b: Option[Array[Byte]]) {
-    (a, b) match {
-      case (None, None) ⇒ // match!
-      case (Some(av), Some(bv)) ⇒
-        Conv.toUtf8(av) should equal (Conv.toUtf8(bv))
-      case (ao, bo) ⇒ ao should equal (bo)
-    }
+  class ShuffleOrdering extends Ordering[Any] {
+    def compare(a: Any, b: Any) =
+      (scala.math.random * 3).toInt - 1
   }
+
+  private def tableSet(table: Table[Array[Byte]], key: String, value: String) =
+    table(Conv.toBytes(key)) = Conv.toBytes(value)
+
+  private def tableGet(table: Table[Array[Byte]], key: String) =
+    table.get(Conv.toBytes(key)).map(Conv.toUtf8)
+
 }
