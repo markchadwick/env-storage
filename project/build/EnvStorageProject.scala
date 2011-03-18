@@ -18,6 +18,8 @@ class EnvStorageProject(info: ProjectInfo) extends ParentProject(info) {
     val rawsonRepo = "Rawson Repo" at "http://people.apache.org/~rawson/repo"
     val javaRepo = "Java Repo" at "http://download.java.net/maven/2"
 
+    lazy val slf4j = "org.slf4j" % "slf4j-api" % "1.5.5" % "test"
+
     lazy val hbase = "org.apache.hbase" % "hbase" % "0.90.0"
 
     lazy val hadoopTest = "org.apache.hadoop" % "hadoop-test" %
