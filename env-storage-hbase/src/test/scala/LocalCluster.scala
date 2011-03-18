@@ -2,8 +2,6 @@ package env.storage.hbase
 
 import org.apache.hadoop.hbase.HBaseTestingUtility
 import org.apache.hadoop.hbase.client.HTable
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
 
 import env.storage.ByteConversions
 
@@ -30,9 +28,6 @@ object LocalCluster {
     println("- " * 30)
     println("- Starting HBase Cluster...")
     println("- " * 30)
-
-    // Make things a touch less chatty
-    Logger.getRootLogger.setLevel(Level.INFO)
 
     val util = new HBaseTestingUtility()
     util.startMiniCluster

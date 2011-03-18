@@ -21,18 +21,18 @@ import ByteConversions._
 trait ByteConversions {
   type BA = Array[Byte]
 
+  /** Byte ordering is lexographic, not numeric. Which is to say that the array
+    * [1, 2, 3, 4] is less than [2, 3, 4]. */
   class ByteArrayOrdering extends Ordering[BA] {
-    def compare(a: BA, b: BA): Int = {
-      if(a.length > b.length) {
-        return 1
-      } else if (b.length > a.length) {
-        return -1
-      } else {
-        a zip b foreach { case(ba, bb) ⇒
-          if(ba > bb) return 1
-          if(bb > ba) return -1
-        }
-        return 0
+    def compare(aa: BA, ab: BA): Int = {
+      (aa.headOption, ab.headOption) match {
+        case (Some(a), Some(b)) if (a == b) ⇒ compare(aa.tail, ab.tail)
+        case (Some(a), Some(b)) if (a > b) ⇒ +1
+        case (Some(a), Some(b)) if (a < b) ⇒ -1
+        case (None, None) ⇒ 0
+        case (None, _) ⇒ -1
+        case (_, None) ⇒ +1
+        case _ ⇒ 0
       }
     }
   }
