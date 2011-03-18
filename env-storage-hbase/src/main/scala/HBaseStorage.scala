@@ -5,6 +5,14 @@ import org.apache.hadoop.hbase.client.HTable
 import env.storage.ByteConversions
 import env.storage.Storage
 
+object HBaseStorage {
+  /** The default family name. Because this is a one-dimensional store on top of
+    * a multi-dimensional store, we have to pick an arbitary, consistant name so
+    * we know which dimension to chunk values in. */
+  var familyName = ByteConversions.toBytes("VALUE")
+}
+
+
 /** Basic HBase 1d storage implementation. This trait will define everything
   * about how the storage layer behaves except for how to create a table (for
   * easy of testing). Along those lines, it may be subclassed overrideing
@@ -14,11 +22,6 @@ trait HBaseStorage extends Storage {
   /** Keep a local cache of the tables so that we don't have to query the
     * underlying API every time someone asks for one. */
   private var tables = Map.empty[String, HBaseTable]
-
-  /** The default family name. Because this is a one-dimensional store on top of
-    * a multi-dimensional store, we have to pick an arbitary, consistant name so
-    * we know which dimension to chunk values in. */
-  private var familyName = ByteConversions.toBytes("VALUE")
 
   /** Abtract method to create a [[HTable]] with the following parameters. The
     * implementing method need to worry about the table already existing -- this
@@ -44,7 +47,7 @@ trait HBaseStorage extends Storage {
       case Some(table) ⇒ table
       case None ⇒
         val tableName = ByteConversions.toBytes(name)
-        val hTable = newHTable(tableName, Array(familyName), 1)
+        val hTable = newHTable(tableName, Array(HBaseStorage.familyName), 1)
         val hBaseTable = hTableToHBaseTable(hTable)
 
         tables += (name → hBaseTable)
