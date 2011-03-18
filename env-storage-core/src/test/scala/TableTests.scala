@@ -12,6 +12,7 @@ trait TableTests extends FlatSpec with ShouldMatchers {
 
   behavior of name
 
+
   it should "store a value to a key" in {
     withTable { table ⇒
       val two = Conv.toBytes("two")
@@ -19,8 +20,8 @@ trait TableTests extends FlatSpec with ShouldMatchers {
       table("one") = two
       table("two") = four
 
-      table.get("one") should equal (Some(two))
-      table("two") should equal (four)
+      bytesOptsShouldEqual(table.get("one"), Some(two))
+      bytesOptsShouldEqual(Some(table("two")), Some(four))
 
       intercept[NoSuchElementException] {
         table("three")
@@ -61,4 +62,14 @@ trait TableTests extends FlatSpec with ShouldMatchers {
   /** We mix [[ByteConversions]] in to a new object so that no implicits are in
     * play in the test code. */
   object Conv extends ByteConversions
+
+  private def bytesOptsShouldEqual(a: Option[Array[Byte]],
+                                   b: Option[Array[Byte]]) {
+    (a, b) match {
+      case (None, None) ⇒ // match!
+      case (Some(av), Some(bv)) ⇒
+        Conv.toUtf8(av) should equal (Conv.toUtf8(bv))
+      case (ao, bo) ⇒ ao should equal (bo)
+    }
+  }
 }
