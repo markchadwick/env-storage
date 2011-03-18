@@ -19,6 +19,10 @@ class EnvStorageProject(info: ProjectInfo) extends ParentProject(info) {
     val javaRepo = "Java Repo" at "http://download.java.net/maven/2"
 
     lazy val hbase = "org.apache.hbase" % "hbase" % "0.90.0"
+
+    lazy val hadoopTest = "org.apache.hadoop" % "hadoop-test" %
+                          "0.20-append-r1056497" % "test"
+
     lazy val hbaseTests = "org.apache.hbase" % "hbase-tests" % "0.90.0" % "test" from
       "http://akkimbo.com/hbase-0.90.1-tests.jar"
   }
