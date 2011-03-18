@@ -2,22 +2,16 @@ package env.storage
 
 import scala.collection.SortedMap
 
-/** For most methods, keys may be treated as either byte arrays or strings,
-  * though the former is really reccomended. */
-trait Table[Value] extends SortedMap[Array[Byte], Value]
-            with ByteConversions {
 
-  type Key = Array[Byte]
+/** A generic table which has an [[Array[Byte]]] key space, and an associated
+  * value. A table will be ordered lexographiclly by its keys. The imlementation
+  * must follow this interface as an abstraction, though performance
+  * characteristics for querying each underlying type may wildly differ. */
+trait Table[T] extends SortedMap[Array[Byte], T]
+               with ByteConversions {
 
-  def update(key: Key, value: Value): Unit
-
-  def update(key: String, value: Value): Unit =
-    update(toBytes(key), value)
-
-  def get(key: String): Option[Value] =
-    get(toBytes(key))
-
-  def apply(key: String): Value =
-    apply(toBytes(key))
-
+  /** Update a key with a value. If the key does not exist, the value will
+    * simply be set. If it does, the old value will be clobbered with no
+    * notification. */
+  def update(key: Array[Byte], value: T): Unit
 }

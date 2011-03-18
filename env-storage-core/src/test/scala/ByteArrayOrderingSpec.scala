@@ -43,12 +43,9 @@ class ByteArrayOrderingSpec extends FlatSpec with ShouldMatchers {
   }
 
   it should "consider an empty array small" in {
-    pending
-    /*
-    val a = new Array()
-    val b = new Array[Byte](-1000)
+    val a = Array[Byte]()
+    val b = Array[Byte](-100)
 
     compare(a, b) should be < (0)
-    */
   }
 }
