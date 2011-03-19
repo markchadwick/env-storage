@@ -80,7 +80,6 @@ trait TableTests extends FlatSpec with ShouldMatchers {
     }
   }
 
-  /*
   it should "find a range inclusive of the first key exclusive of the last" in {
     withTable { table ⇒
       val vals = List("bbb", "ccc", "ddd", "eee")
@@ -90,22 +89,18 @@ trait TableTests extends FlatSpec with ShouldMatchers {
 
       val r1 = table.range(Conv.toBytes("ccc"), Conv.toBytes("eee"))
       r1 should have size (2)
-      r1.keys.zip(List("ccc", "ddd"))
-             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+      toStrings(r1.keys) should equal (List("ccc", "ddd"))
 
       val r2 = table.range(Conv.toBytes("ddd"), Conv.toBytes("zzz"))
       r2 should have size (2)
-      r2.keys.zip(List("ddd", "eee"))
-             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+      toStrings(r2.keys) should equal (List("ddd", "eee"))
 
       val r3 = table.range(Conv.toBytes("aaa"), Conv.toBytes("bbb"))
       r3 should have size (0)
 
       val r4 = table.range(Conv.toBytes("aaa"), Conv.toBytes("ddd"))
       r4 should have size (2)
-      r4.keys.zip(List("bbb", "ccc"))
-             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
-
+      toStrings(r4.keys) should equal (List("bbb", "ccc"))
     }
   }
 
@@ -118,13 +113,11 @@ trait TableTests extends FlatSpec with ShouldMatchers {
 
       val r1 = table.from(Conv.toBytes("ccc"))
       r1 should have size (2)
-      r1.keys.zip(List("ccc", "ddd"))
-             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+      toStrings(r1.keys) should equal (List("ccc", "ddd"))
 
       val r2 = table.from(Conv.toBytes("ddd"))
       r2 should have size (1)
-      r2.keys.zip(List("ddd"))
-             .foreach(x ⇒ bytesShouldEqual(x._1, x._2))
+      toStrings(r2.keys) should equal (List("ddd"))
 
       val r3 = table.from(Conv.toBytes("eee"))
       r3 should have size (0)
@@ -136,24 +129,19 @@ trait TableTests extends FlatSpec with ShouldMatchers {
 
   it should "remove a key" in {
     withTable { table ⇒
-      table(Conv.toBytes("one")) = Conv.toBytes("one")
-      table(Conv.toBytes("two")) = Conv.toBytes("two")
-      table(Conv.toBytes("three")) = Conv.toBytes("three")
-      table(Conv.toBytes("four")) = Conv.toBytes("four")
+      tableSet(table, "one", "one")
+      tableSet(table, "two", "two")
+      tableSet(table, "three", "three")
+      tableSet(table, "four", "one")
 
-      bytesOptsShouldEqual(table.get(Conv.toBytes("one")),
-                                     Some(Conv.toBytes("one")))
-
-      bytesOptsShouldEqual(table.get(Conv.toBytes("three")),
-                                     Some(Conv.toBytes("three")))
+      tableGet(table, "one") should equal (Some("one"))
+      tableGet(table, "three") should equal (Some("three"))
 
       table - Conv.toBytes("three")
 
       pending
-      bytesOptsShouldEqual(table.get(Conv.toBytes("three")), None)
     }
   }
-  */
 
   it should "clobber a value on update" is (pending)
 
@@ -172,4 +160,6 @@ trait TableTests extends FlatSpec with ShouldMatchers {
   private def tableGet(table: Table[Array[Byte]], key: String) =
     table.get(Conv.toBytes(key)).map(Conv.toUtf8)
 
+  private def toStrings(s: Traversable[Array[Byte]]): List[String] =
+    s.map(Conv.toUtf8).toList
 }
