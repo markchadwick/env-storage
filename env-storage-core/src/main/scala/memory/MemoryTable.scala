@@ -8,15 +8,15 @@ import env.storage.Table
 /** In in-memory table which holds a sorted set of keys and their attached
   * values. There are no bounds on the size of this table, so shoving too much
   * in it will very much explode your heap. */
-class MemoryTable(name: String) extends Table[Array[Byte]] {
+class MemoryTable[T](name: String) extends Table[T] {
 
   /** Internal storage which uses [[ByteArrayOrdering]] to sort the keyspace. */
-  private var storage = SortedMap.empty[Array[Byte], Array[Byte]](
+  private var storage = SortedMap.empty[Array[Byte], T](
     new ByteArrayOrdering())
 
   /** Return a new table that contains the given key. Though this appears to
     * return a copy, this will actually modify the underlying storage. */
-  def +[B >: Array[Byte]](kv: (Array[Byte], B)) = storage + kv
+  def +[B >: T](kv: (Array[Byte], B)) = storage + kv
 
   /** Remove a key from the underlying storage. Though this appears to return a
     * copy, it is actually a distructive operation. */
@@ -32,7 +32,7 @@ class MemoryTable(name: String) extends Table[Array[Byte]] {
 
   /** Optionally get a value from this [[MemoryTable]]. If the given key exists,
     * it will return a [[Some]] of the value, otherwise [[None]]. */
-  def get(key: Array[Byte]): Option[Array[Byte]] = storage.get(key)
+  def get(key: Array[Byte]): Option[T] = storage.get(key)
 
   /** Get a range of keys and their values where the start and stop positions
     * are optional. If both are [[None]], this will return all key/value pairs
@@ -50,7 +50,7 @@ class MemoryTable(name: String) extends Table[Array[Byte]] {
 
   /** Update the value of a key in place. If the key is already bound to a
     * value, it will be clobbered. */
-  def update(key: Array[Byte], value: Array[Byte]) =
+  def update(key: Array[Byte], value: T) =
     storage += (key → value)
 
   /** Tells [[SortedMap]] to display the name of this table when rendering the
