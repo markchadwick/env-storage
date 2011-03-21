@@ -2,9 +2,10 @@ package env.storage
 
 import java.{lang ⇒ j}
 
-/** Largely stolen from:
-  * hbase/src/main/java/org/apache/hadoop/hbase/util/Bytes.java
-  */
+
+/** Simple conversersions to and from JVM primatives. Largely based on the
+  * [[Bytes]] library from HBase:
+  * hbase/src/main/java/org/apache/hadoop/hbase/util/Bytes.java */
 object ByteConversions extends ByteConversions {
   val SIZEOF_BOOLEAN = j.Byte.SIZE / j.Byte.SIZE
   val SIZEOF_BYTE = j.Byte.SIZE
@@ -18,6 +19,9 @@ object ByteConversions extends ByteConversions {
 
 import ByteConversions._
 
+
+/** An optional mixin to define conversions to and from JVM natives types and
+  * their Array[Byte] equivilants. */
 trait ByteConversions {
   type BA = Array[Byte]
 
@@ -46,6 +50,7 @@ trait ByteConversions {
     j.Float.intBitsToFloat(toInt(ba, 0, SIZEOF_INT))
 
   def toLong(ba: BA): Long = toLong(ba, 0, SIZEOF_LONG)
+
   def toLong(bytes: BA, offset: Int, length: Int): Long = {
     if(length != SIZEOF_LONG || offset + length > bytes.length) {
       throw new IllegalArgumentException("Bad Parameters")
