@@ -9,23 +9,26 @@ class EnvStorageProject(info: ProjectInfo) extends ParentProject(info) {
     new HbaseStorageProject(_), storageCore)
                           
   class StorageCoreProject(info: ProjectInfo) extends DefaultProject(info) {
-    lazy val scalatest = "org.scalatest" % "scalatest" % "1.3" % "test"
-    lazy val scalacheck= "org.scala-tools.testing" %% "scalacheck" % "1.8" % "test"
+    lazy val scalatest = Dependencies.scalatest % "test"
+    lazy val scalacheck = Dependencies.scalacheck % "test"
   }
 
   class HbaseStorageProject(info: ProjectInfo) extends DefaultProject(info) {
     val apacheRepo = "Apache Repo" at "http://repository.apache.org/content/groups/public"
-    val rawsonRepo = "Rawson Repo" at "http://people.apache.org/~rawson/repo"
-    val javaRepo = "Java Repo" at "http://download.java.net/maven/2"
 
-    lazy val slf4j = "org.slf4j" % "slf4j-api" % "1.5.5" % "test"
+    lazy val hbase = Dependencies.hbase
+    lazy val hbaseTests = Dependencies.hbaseTests
+    lazy val hdfsTest = Dependencies.hadoopTest % "test"
+    lazy val slf4j = Dependencies.slf4j % "test"
+  }
 
-    lazy val hbase = "org.apache.hbase" % "hbase" % "0.90.0"
-
-    lazy val hadoopTest = "org.apache.hadoop" % "hadoop-test" %
-                          "0.20-append-r1056497" % "test"
-
-    lazy val hbaseTests = "org.apache.hbase" % "hbase-tests" % "0.90.0" % "test" from
-      "http://akkimbo.com/hbase-0.90.1-tests.jar"
+  object Dependencies {
+    def hadoopTest = "org.apache.hadoop" % "hadoop-test" % "0.20.2"
+    def hbase = "org.apache.hbase" % "hbase" % "0.90.2"
+    def hbaseTests = "org.apache.hbase" % "hbase-tests" % "0.90.2" % "test" from
+      "https://repository.apache.org/content/groups/public/org/apache/hbase/hbase/0.90.2/hbase-0.90.2-tests.jar"
+    def scalacheck= "org.scala-tools.testing" %% "scalacheck" % "1.8"
+    def scalatest = "org.scalatest" % "scalatest" % "1.3"
+    def slf4j = "org.slf4j" % "slf4j-api" % "1.5.5"
   }
 }
