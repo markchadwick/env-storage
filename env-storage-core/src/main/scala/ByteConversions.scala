@@ -2,9 +2,10 @@ package env.storage
 
 import java.{lang ⇒ j}
 
-/** Largely stolen from:
-  * hbase/src/main/java/org/apache/hadoop/hbase/util/Bytes.java
-  */
+
+/** Simple conversersions to and from JVM primatives. Largely based on the
+  * [[Bytes]] library from HBase:
+  * hbase/src/main/java/org/apache/hadoop/hbase/util/Bytes.java */
 object ByteConversions extends ByteConversions {
   val SIZEOF_BOOLEAN = j.Byte.SIZE / j.Byte.SIZE
   val SIZEOF_BYTE = j.Byte.SIZE
@@ -18,21 +19,24 @@ object ByteConversions extends ByteConversions {
 
 import ByteConversions._
 
+
+/** An optional mixin to define conversions to and from JVM natives types and
+  * their Array[Byte] equivilants. */
 trait ByteConversions {
   type BA = Array[Byte]
 
+  /** Byte ordering is lexographic, not numeric. Which is to say that the array
+    * [1, 2, 3, 4] is less than [2, 3, 4]. */
   class ByteArrayOrdering extends Ordering[BA] {
-    def compare(a: BA, b: BA): Int = {
-      if(a.length > b.length) {
-        return 1
-      } else if (b.length > a.length) {
-        return -1
-      } else {
-        a zip b foreach { case(ba, bb) ⇒
-          if(ba > bb) return 1
-          if(bb > ba) return -1
-        }
-        return 0
+    def compare(aa: BA, ab: BA): Int = {
+      (aa.headOption, ab.headOption) match {
+        case (Some(a), Some(b)) if (a == b) ⇒ compare(aa.tail, ab.tail)
+        case (Some(a), Some(b)) if (a > b) ⇒ +1
+        case (Some(a), Some(b)) if (a < b) ⇒ -1
+        case (None, None) ⇒ 0
+        case (None, _) ⇒ -1
+        case (_, None) ⇒ +1
+        case _ ⇒ 0
       }
     }
   }
@@ -46,6 +50,7 @@ trait ByteConversions {
     j.Float.intBitsToFloat(toInt(ba, 0, SIZEOF_INT))
 
   def toLong(ba: BA): Long = toLong(ba, 0, SIZEOF_LONG)
+
   def toLong(bytes: BA, offset: Int, length: Int): Long = {
     if(length != SIZEOF_LONG || offset + length > bytes.length) {
       throw new IllegalArgumentException("Bad Parameters")
