@@ -24,6 +24,6 @@ A simple dialog might be as follows.
 
 Implementations
 ---------------
-At present, there are only to backend impelementations to `env-storage`; "In
+At present, there are only two backend impelementations to `env-storage`; "In
 Memory" and "HBase." Neither would be suitable for a production environment at
 the moment.
